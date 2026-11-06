@@ -1,0 +1,27 @@
+{
+  "name": "mcp-catalogo-inmobiliario",
+  "version": "0.1.0",
+  "description": "Servidor MCP que da a agentes de IA acceso seguro y auditado al catálogo de una inmobiliaria",
+  "scripts": {
+    "http": "node src/main-http.ts",
+    "stdio": "node src/main-stdio.ts",
+    "test": "node --test \"test/**/*.test.ts\"",
+    "check": "tsc --noEmit",
+    "token": "node scripts/crear-token.ts"
+  },
+  "author": "",
+  "license": "MIT",
+  "type": "module",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "typescript": "^7.0.2"
+  },
+  "private": true,
+  "engines": {
+    "node": ">=24"
+  }
+}
