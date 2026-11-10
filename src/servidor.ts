@@ -16,6 +16,9 @@ import type { Identidad, Permiso } from "./identidades.ts";
 export const VERSION = "0.1.0";
 const MAX_RESULTADOS = 10;
 
+/** Las cuatro pistas siempre explícitas: algunos directorios de MCP rechazan herramientas a las que les falta alguna. */
+const SOLO_LECTURA = { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false };
+
 export interface Dependencias {
   catalogo: Catalogo;
   origen: Origen;
@@ -94,7 +97,7 @@ export function crearServidor(identidad: Identidad, deps: Dependencias): McpServ
           dormitoriosMin: z.number().int().min(0).max(10).optional(),
           soloDisponibles: z.boolean().default(true),
         },
-        annotations: { readOnlyHint: true, openWorldHint: false },
+        annotations: SOLO_LECTURA,
       },
       auditada("buscar_propiedades", "catalogo:leer", async (a) => {
         const normal = (s: string) => s.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase();
@@ -130,7 +133,7 @@ export function crearServidor(identidad: Identidad, deps: Dependencias): McpServ
         title: "Ver propiedad",
         description: "Detalle público de una propiedad por su referencia (por ejemplo VT-4F9K2A).",
         inputSchema: { referencia: z.string().regex(/^[A-Za-z]{2}-[A-Za-z0-9]{6}$/) },
-        annotations: { readOnlyHint: true, openWorldHint: false },
+        annotations: SOLO_LECTURA,
       },
       auditada("ver_propiedad", "catalogo:leer", async ({ referencia }) => {
         const p = await deps.catalogo.porReferencia(referencia);
@@ -153,7 +156,8 @@ export function crearServidor(identidad: Identidad, deps: Dependencias): McpServ
           telefono: z.string().regex(/^\+?[0-9 ()-]{6,25}$/).optional(),
           mensaje: z.string().trim().min(1).max(2000),
         },
-        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+        // No es idempotente: cada llamada deja una consulta nueva, así que un reintento la duplica.
+        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
       },
       auditada("registrar_consulta", "consultas:crear", async (a) => {
         let externalId: string | null = null;
@@ -180,7 +184,7 @@ export function crearServidor(identidad: Identidad, deps: Dependencias): McpServ
         description: "Cuándo se actualizó el catálogo, qué ítems se descartaron del feed y por qué, y el último error.",
         // Esquema vacío a propósito: así el SDK le pasa (args, extra) al handler igual que en las demás.
         inputSchema: {},
-        annotations: { readOnlyHint: true, openWorldHint: false },
+        annotations: SOLO_LECTURA,
       },
       auditada("estado_catalogo", "calidad:leer", async () => {
         await deps.catalogo.propiedades().catch(() => undefined);

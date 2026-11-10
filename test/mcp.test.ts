@@ -28,6 +28,23 @@ test("las herramientas de lectura se marcan como de solo lectura", async () => {
   assert.equal(tools.find((t) => t.name === "registrar_consulta")?.annotations?.readOnlyHint, false);
 });
 
+test("cada herramienta declara las cuatro pistas, y registrar_consulta no se marca como repetible", async () => {
+  const herramientas = [];
+  for (const token of [s.tokens.operador, s.tokens.auditor]) {
+    const c = await s.cliente(token);
+    herramientas.push(...(await c.listTools()).tools);
+    await c.close();
+  }
+  assert.equal(herramientas.length, 4);
+  for (const t of herramientas) {
+    for (const pista of ["readOnlyHint", "destructiveHint", "idempotentHint", "openWorldHint"] as const) {
+      assert.equal(typeof t.annotations?.[pista], "boolean", `${t.name} sin ${pista}`);
+    }
+  }
+  // Cada llamada crea una consulta nueva: si un cliente la reintentara creyéndola idempotente, la duplicaría.
+  assert.equal(herramientas.find((t) => t.name === "registrar_consulta")?.annotations?.idempotentHint, false);
+});
+
 test("buscar filtra por operación, zona sin tildes y disponibilidad", async () => {
   const c = await s.cliente(s.tokens.lector);
   const r = JSON.parse(textoDe(await c.callTool({ name: "buscar_propiedades", arguments: { operacion: "venta", zona: "cordoba" } })));

@@ -2,7 +2,7 @@
 
 Servidor [MCP](https://modelcontextprotocol.io) que da a agentes de IA acceso al catálogo de una inmobiliaria: **cada identidad ve solo las herramientas que tiene permitidas, cada llamada queda auditada sin datos personales y el feed de datos pasa por un control de calidad antes de llegarle al modelo.**
 
-> **EN:** An MCP server that exposes a real-estate catalog to AI agents with per-identity, scope-based tool access (tools are filtered at `tools/list` and re-checked on every call), hashed bearer tokens, PII-free audit logging, rate limiting, and a validated, quality-checked data feed with safety brakes. TypeScript, official MCP SDK, Streamable HTTP and stdio. 27 tests, including end-to-end tests with the official MCP client.
+> **EN:** An MCP server that exposes a real-estate catalog to AI agents with per-identity, scope-based tool access (tools are filtered at `tools/list` and re-checked on every call), hashed bearer tokens, PII-free audit logging, rate limiting, and a validated, quality-checked data feed with safety brakes. TypeScript, official MCP SDK, Streamable HTTP and stdio. 28 tests, including end-to-end tests with the official MCP client.
 
 Está pensado para el conector que ya funciona en producción en la web de [Veta Inmobiliaria](https://vetainmobiliaria.com) (`/api/asistente/catalogo` y `/api/asistente/acciones`). El repo trae un catálogo de ejemplo con datos inventados, así que se puede probar sin acceso a nada real.
 
@@ -43,7 +43,7 @@ Requiere Node 24 (corre TypeScript directo, sin compilar).
 
 ```bash
 npm install
-npm test            # 27 pruebas
+npm test            # 28 pruebas
 npm run check       # tipos
 
 # HTTP (Streamable HTTP, sin sesiones) en http://127.0.0.1:3200/mcp
@@ -57,11 +57,11 @@ Sin `CONECTOR_URL` usa `ejemplos/catalogo.json`; con `CONECTOR_URL` y `CONECTOR_
 
 ## Pruebas
 
-`node --test`, 27 casos:
+`node --test`, 28 casos:
 - **Feed:** versión, feed vacío, ítem roto que se descarta con su motivo, rechazo si se descarta más de la mitad, referencias duplicadas, campos que no deben llegar al modelo.
 - **Identidades:** token válido, inventado, vencido, dado de baja; registro con permisos desconocidos o ids repetidos.
 - **Catálogo:** caché, origen caído (sigue con el último bueno), corte por antigüedad, freno ante una caída brusca del catálogo, una sola lectura con pedidos simultáneos.
-- **Punta a punta** con el cliente oficial del SDK sobre HTTP: herramientas filtradas por identidad, permiso denegado aunque se llame por nombre, consulta registrada con auditoría sin datos personales, argumentos inválidos, 401 y 429.
+- **Punta a punta** con el cliente oficial del SDK sobre HTTP: herramientas filtradas por identidad, permiso denegado aunque se llame por nombre, las cuatro pistas (readOnly, destructive, idempotent, openWorld) declaradas en cada herramienta, consulta registrada con auditoría sin datos personales, argumentos inválidos, 401 y 429.
 
 ## Próximos pasos
 
